@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="rental_order_form" model="ir.ui.view">
+            <field name="name">rental.order.form</field>
+            <field name="model">rental.order</field>
+            <field name="arch" type="xml">
+            <sheet>
+            <form>
+                    <header>
+                            <button  name="confirm_rental_order"  type="object" 
+                                    class="oe_highlight" states="draft" string="Confirm Rental"/>
+                            <button type="object" class="oe_highlight" 
+                                name="close_rental" states="confirm_rental" 
+                                string="Close Rental"
+                                />
+                            <button type="object" name="genrate_existing_products" 
+                                     class="oe_highlight" 
+                                    states="confirm_rental"
+                                    string="Replace Product"
+                                />
+                        <field name="state" widget="statusbar" 
+                            statusbar_visible="draft,confirm_rental,close"
+                            />
+                    </header>
+                        <h1><label string="Order Number"/></h1><field name="name" readonly="1"/>
+                        <group col="4">
+                            <field name="customer_id" required="1" domain="[('customer','=',True)]"/>
+                            <field name="inv_address"/>
+                            <field name="delivery_address"/>
+                            <field name="start_date"/>
+                            <field name="inital_term"/>
+                            <field name="billing_freq"/>
+                            <field name="purchase_price"/>
+                            <field name="date" required="1"/>
+                            <field name="reference"/>
+                            <field name="agg_recived"/>
+                            <field name="warehouse"/>
+                            <field name="price_list"/>
+                            <field name="close_date"/>
+                        </group>
+                        <notebook>
+                            <page string="Equipment Rental">
+                                <field name="eupment_rental_ids">
+                                    <tree string="Equipment Rental">
+                                        <field name="product_category"/>
+                                        <field name="description"/>
+                                        <field name="seq_id"/>
+                                        <field name="monthly_rent"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page>
+                            </page>
+                        </notebook>
+                    </form>
+                    </sheet>
+            </field>
+        </record>
+
+       <record id="view_rental_order_tree" model="ir.ui.view">
+            <field name="name">rental.order.tree</field>
+            <field name="model">rental.order</field>
+            <field name="arch" type="xml">
+                <tree>
+                            <field name="name"/>
+                            <field name="customer_id"/>
+                            <field name="start_date"/>
+                            <field name="agg_recived"/>
+                  </tree>
+            </field>
+        </record>
+        
+
+        <record id="action_view_rental_order" model="ir.actions.act_window">
+            <field name="name"> Module</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">rental.order</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="rental_order_action" parent="rental_products_main" name="Rental Orders" action="action_view_rental_order"/>
+    </data>
+</openerp>

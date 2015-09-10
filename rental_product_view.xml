@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <menuitem id="rental_products_main" name="Rental Products" parent="base.menu_base_partner" sequence="2"/>
+        <record id="rental_product_form_view" model="ir.ui.view">
+            <field name="name">rental.product.form</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_normal_form_view"/>
+            <field name="arch" type="xml">
+                <field name="sale_ok" position="before">
+                        <field name="can_be_rented"/>
+                        <label string="Can be rented"/>
+                 </field>
+                 <xpath expr="//page[@string='Accounting']" position="after">
+                      <page string ="Rental Information">
+                        <group col="4">
+                            <field name="income_account"/>
+                            <field name="replacement_value"/>
+                            <field name="mothly_rental"/>
+                        </group>
+                         <separator string="Asset Comments"/>
+                                <field name="asset_comment" placeholder="This note will describe the assets to be rented..."/>
+                      </page>
+                 </xpath>
+                </field>
+        </record>
+
+        <record id="action_rental_product" model="ir.actions.act_window">
+            <field name="name"> Module</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.product</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[["can_be_rented","=",True]]</field>
+        </record>
+
+      <menuitem id="rental_products_action_menu" action="action_rental_product" name="Rental Products" parent="rental_products_main" />
+    </data>
+</openerp>

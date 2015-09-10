@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+
+        <record id="replace_rental_product_form_view" model="ir.ui.view">
+            <field name="name">replacing.rental.product</field>
+            <field name="model">replace.product.wizard</field>
+            <field name="arch" type="xml">
+            <sheet>
+                <form string="Replace rental product ">
+                    <group>
+                        <field name="existing_products_ids">
+                            <tree editable="top">
+                                <field name="product_id"/>
+                                <field name="qty"/>
+                                <field name="replace"/>
+                             </tree>
+                        </field>
+                        <field name="rental_product_ids">
+                            <tree editable="top">
+                                <field name="serial_number"/>
+                                <field name="product_id"/>
+                                <field name="price"/>
+                            </tree>
+                        </field>
+                       <field name="replace_date" required="1"/>
+                    </group>
+                    <footer>
+                        <button string="Replace Product" name="replace_product" type="object"  class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+              </sheet>
+            </field>
+        </record>
+
+        <record id="action_replace_products_wizard1" model="ir.actions.act_window">
+                <field name="name">Replace Product Wizard</field>
+                <field name="res_model">replace.product.wizard</field>
+                <field name="view_type">form</field>
+                <field name="view_mode">form</field>
+                <field name="target">new</field>
+            </record>
+    </data>
+</openerp>
