@@ -5,7 +5,7 @@ class stock_quant(models.Model):
 
     _inherit = 'stock.quant'
 
-    assets_status = fields.Char('Asset Status')
+    status = fields.Selection([('ready_to_transfer','Ready To Transfer'),('rented','Rented'),('new','New-Inventory'),('used_ready_to_go','Used Ready to go')])
     used_value = fields.Float('Used Value')
     mothly_rental = fields.Float(related = 'product_id.mothly_rental',string = "Monthly Rent")
     total_rent_collection_this_location = fields.Float('Total rent collection this location')

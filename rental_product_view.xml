@@ -16,7 +16,7 @@
                         <group col="4">
                             <field name="income_account"/>
                             <field name="replacement_value"/>
-                            <field name="mothly_rental"/>
+                            <field name="mothly_rental" required="1"/>
                         </group>
                          <separator string="Asset Comments"/>
                                 <field name="asset_comment" placeholder="This note will describe the assets to be rented..."/>

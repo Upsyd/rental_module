@@ -18,7 +18,6 @@
              'rental_seq.xml',
              'stock_quants_inherited_view.xml',
              'replace_product_form.xml',
-             'sale_view.xml'
              ],
     'installable': True,
     'auto_install': False,

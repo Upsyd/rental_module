@@ -7,7 +7,7 @@
             <field name="model">rental.lines</field>
             <field name="arch" type="xml">
                 <form>
-                    <group col="4">
+                    <group>
                         <field name="seq_id" required="1"/>
                         <field name="product_category"/>
                         <field name="product_id" domain="[('can_be_rented','=',True)]"/>

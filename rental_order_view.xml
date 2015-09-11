@@ -38,11 +38,11 @@
                             <field name="agg_recived"/>
                             <field name="warehouse"/>
                             <field name="price_list"/>
-                            <field name="close_date"/>
+                            <field name="close_date" readonly="1"/>
                         </group>
                         <notebook>
                             <page string="Equipment Rental">
-                                <field name="eupment_rental_ids">
+                                <field name="eupment_rental_ids"  attrs="{'readonly': [('state','=','confirm_rental')]}">
                                     <tree string="Equipment Rental">
                                         <field name="product_category"/>
                                         <field name="description"/>
@@ -51,7 +51,11 @@
                                     </tree>
                                 </field>
                             </page>
-                            <page>
+                            <page string="Other Information">
+                                <group>
+                                    <field name="source_document_id"/>
+                                    <field name="releated_subscription_id" readonly="1"/>
+                                </group>
                             </page>
                         </notebook>
                     </form>
@@ -68,6 +72,7 @@
                             <field name="customer_id"/>
                             <field name="start_date"/>
                             <field name="agg_recived"/>
+                            <field name="state"/>
                   </tree>
             </field>
         </record>

@@ -4,7 +4,7 @@ from openerp import models, fields, api,_
 class rental_lines(models.Model):
 
     _name = 'rental.lines'
-    _rec_name = 'product_id'
+    _rec_name = 'seq_id'
 
     seq_id = fields.Many2one('stock.production.lot','Serial Number')
     product_id = fields.Many2one(related = 'seq_id.product_id')

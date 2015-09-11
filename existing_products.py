@@ -11,6 +11,6 @@ class existing_products(models.Model):
     monthly_rent = fields.Float(related='product_id.mothly_rental')
     replace_wizard_id = fields.Many2one('replace.order.wizard')
     product_id = fields.Many2one('product.product', domain=[('can_be_rented','=',True)])
-    qty = fields.Float('Price')
+    qty = fields.Float('Qty')
     replace = fields.Boolean('Replace',Default = 1)
 
