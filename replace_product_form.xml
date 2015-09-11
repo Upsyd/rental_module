@@ -9,10 +9,10 @@
             <sheet>
                 <form string="Replace rental product ">
                     <group>
-                        <field name="existing_products_ids">
+                        <field name="existing_products_ids" >
                             <tree editable="top">
-                                <field name="product_id"/>
-                                <field name="qty"/>
+                                <field name="product_id" readonly="1"/>
+                                <field name="qty" readonly="1"/>
                                 <field name="replace"/>
                              </tree>
                         </field>

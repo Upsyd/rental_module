@@ -103,21 +103,23 @@ class rental_order(models.Model):
                 invoice = inv_object.browse(cr,uid,inv_id,context= {})
 
                 #creating d/o for the same 
+                print "creating delivery order for outgoing products "
                 move_line =()
                 move_lines = []
                 for eq_id in wizard_values_record.eupment_rental_ids:
+                    print "products to be moved", eq_id.product_id.name
                     product_dictionary = {'date_expected': wizard_values_record.date,
                                   'product_uos_qty': 1,
                                   'product_id':eq_id.product_id.id,
                                   'product_uom':1,
                                   'product_uom_qty':1,
                                   'location_id':1,
-                                  'location_dest_id':2,
+                                  'location_dest_id':9,
                                   'date':wizard_values_record.date,
                                   'name':eq_id.product_id.name
                                    }
-                move_line = (0,False,product_dictionary)
-                move_lines.append(move_line)
+                    move_line = (0,False,product_dictionary)
+                    move_lines.append(move_line)
                 stock_picking_id = stock_picking_object.create(cr,uid,{'move_lines':move_lines,
                                                         'origin' : renatal_order_name,
                                                         'partner_id':wizard_values_record.customer_id.id,
@@ -149,16 +151,17 @@ class rental_order(models.Model):
         for eq_id in rental_order_record.eupment_rental_ids:
                 assets_lines = self.browse(cr, uid, eq_id, context)
                 product_dict = {
-                                
+                                'serial_number':assets_lines.id.seq_id.id,
                                 'product_id' : assets_lines.id.product_id.id,
                                 'qty' : 1,
                                 'replace': True
                               }
                 product_line = (0,False,product_dict)
                 product_lines.append(product_line)
-        created_wizard_id = product_replace_wizard_object.create(cr, uid,{'partner_id':rental_order_record.customer_id.id,
+        created_wizard_id = product_replace_wizard_object.create(cr,uid,{},context)
+        product_replace_wizard_object.write(cr, uid,created_wizard_id,{'partner_id':rental_order_record.customer_id.id,
                                                                           'existing_products_ids':product_lines,
-                                                                          'rental_product_ids': [],
+                                                                          'rental_product_ids':[]
                                                       },context)
          #now opening the newly created view 
         ir_model_data = self.pool.get('ir.model.data')
@@ -179,9 +182,9 @@ class rental_order(models.Model):
                        }
  
     name = fields.Char('name')
-    customer_id = fields.Many2one('res.partner',string = 'Customer')
-    inv_address = fields.Many2one(related = 'customer_id', string ='Invoice Address')
-    delivery_address = fields.Many2one(related = 'customer_id',string='Delivery Address')
+    customer_id = fields.Many2one('res.partner',string = 'Customer',ondelete='cascade')
+    inv_address = fields.Many2one(related = 'customer_id', string ='Invoice Address',ondelete='cascade')
+    delivery_address = fields.Many2one(related = 'customer_id',string='Delivery Address',ondelete='cascade')
     start_date = fields.Date('Start Date')
     inital_term = fields.Selection([('6','6'),('12','12')],'Initial Terms')
     billing_freq = fields.Selection([('1','1'),('3','3'),('6','6'),('12','12')], 'Billing Frequency')
@@ -189,11 +192,11 @@ class rental_order(models.Model):
     date = fields.Datetime('Date')
     reference = fields.Char('Reference')
     agg_recived = fields.Boolean('Agreement received')
-    warehouse = fields.Many2one('stock.warehouse','Warehouse')
-    price_list = fields.Many2one('product.pricelist','Product Price list')
+    warehouse = fields.Many2one('stock.warehouse','Warehouse',ondelete='cascade')
+    price_list = fields.Many2one('product.pricelist','Product Price list',ondelete='cascade')
     close_date = fields.Datetime('Close Date')
     state = fields.Selection([('draft','Draft'),('confirm_rental','Confirm Rental'),
                               ('close','Close')], default = 'draft')
-    eupment_rental_ids = fields.One2many('rental.lines','rental_order_id','Assets Rental Lines')
-    source_document_id = fields.Many2one('subscription.document','Source Document')
-    releated_subscription_id = fields.Many2one( 'subscription.subscription','Releated Subscription')
+    eupment_rental_ids = fields.One2many('rental.lines','rental_order_id','Assets Rental Lines',ondelete='cascade')
+    source_document_id = fields.Many2one('subscription.document','Source Document',ondelete='cascade')
+    releated_subscription_id = fields.Many2one( 'subscription.subscription','Releated Subscription',ondelete='cascade')

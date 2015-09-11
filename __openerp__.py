@@ -9,7 +9,7 @@
     'website': 'http://www.browseinfo.in',
     'images': [],
     'depends': ['base', 'product',
-                'sale', 'account', 'stock',
+                'sale', 'account', 'stock','mrp'
                 ],
     'data': [
              'rental_product_view.xml',
