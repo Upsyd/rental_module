@@ -7,7 +7,6 @@ class rental_lines(models.Model):
     _rec_name = 'seq_id'
 
     def create(self,cr,uid,val,context={}):
-        print val
         return super(rental_lines,self).create(cr,uid,val,context={})
 
     seq_id = fields.Many2one('stock.production.lot','Serial Number',ondelete='cascade')

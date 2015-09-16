@@ -1,15 +1,31 @@
 from openerp import models, fields, api,_ 
 from datetime import datetime
+from openerp.exceptions import except_orm, Warning, RedirectWarning
+from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare, float_round
+from dateutil import relativedelta
+
 
 class rental_order(models.Model):
 
     _name = "rental.order"
 
+    @api.onchange('eupment_rental_ids')
+    def check_serial_number(self):
+        rental_order_records = self.search([])
+        list_sequance_id = []
+        list_product_id =  []
+        for record in rental_order_records:
+            if record.eupment_rental_ids:
+                for rental_products_ids in record.eupment_rental_ids:
+                    list_sequance_id.append(rental_products_ids.seq_id.name)
+        for rental_products in self.eupment_rental_ids:
+                list_product_id.append(rental_products.product_id) 
+                if rental_products.seq_id.id in list_sequance_id:
+                    raise Warning(_('Duplicate Serial Number Not Allowed'))
+        
     @api.model
     def create(self,val):
         seq = self.env['ir.sequence'].get('rental.code')
-        print "seq",seq
-        print seq
         val['name'] = seq
         subscription_obj = self.env['subscription.subscription']
         return super(rental_order,self).create(val)
@@ -34,7 +50,6 @@ class rental_order(models.Model):
         for products in self.eupment_rental_ids:
             products.product_id.name
             res_product_sale = sale_order_line_obj.product_id_change(pricelist = customer_price_list_id,product = products.product_id.id,partner_id = self.customer_id.id)
-            print res_product_sale['value']['product_uom']
             product_dictionary = {'date_expected': self.get_current_date_time(),
                                   'product_uos_qty': 1,
                                   'product_uom': res_product_sale['value']['product_uom'],
@@ -47,15 +62,14 @@ class rental_order(models.Model):
                                   }
             move_line= (0,False,product_dictionary)
             move_lines.append(move_line)
-        print move_lines
         stock_picking_id = stock_picking_object.create({'move_lines':move_lines,
                                                         'origin': 'rental_order',
                                                         'partner_id':self.customer_id.id,
                                                         'picking_type_id': 1,
                                                         })
         subscription_object = self.env['subscription.subscription']
-        subscription_object = self.browse(self.releated_subscription_id.id)
-        
+        subscription_object = subscription_object.browse(self.releated_subscription_id.id)
+        subscription_object.set_done()
 
     def confirm_rental_order(self,cr, uid, ids, context={}):
          if ids:
@@ -76,18 +90,12 @@ class rental_order(models.Model):
 
                 res_customer_sale_order = sale_order_obj.onchange_partner_id(cr,uid,ids,part = partner_id,context={})
                 customer_price_list_id = res_customer_sale_order['value']['pricelist_id']
-                print "customer price list",customer_price_list_id 
                 res_customer = inv_object.onchange_partner_id(cr, uid, ids, type='out_invoice',partner_id =partner_id,
                                                               date_invoice=False, payment_term=False, partner_bank_id=False, company_id=False)
                 account_id = res_customer['value']['account_id']
-                print "value get after calliing on change partner",res_customer
                 for eq_id in wizard_values_record.eupment_rental_ids:
                     res_product_sale = sale_order_line_obj.product_id_change(cr,uid,ids,pricelist = customer_price_list_id,product = eq_id.product_id.id,partner_id = partner_id)
                     res_product_inv =  inv_line_object.product_id_change(cr,uid,ids,product=eq_id.product_id.id ,uom_id =res_product_sale['value']['product_uom'], qty=0, name='', type='out_invoice',partner_id=partner_id)
-                    print "after calling on product change of invoice",res_product_inv
-                    print "---------------->uom",res_product_sale
-                    print "uos_id",res_product_inv['value']['uos_id']
-                    
                     product_dict = {'uos_id': res_product_inv['value']['uos_id'],
                                   'product_id':eq_id.product_id.id,
                                    'price_unit': eq_id.monthly_rent,
@@ -99,15 +107,14 @@ class rental_order(models.Model):
                     order_lines.append(order_line)
                 inv_id = inv_object.create(cr,uid,{'account_id':account_id,
                                                       'partner_id':partner_id,
-                                                      'invoice_line':order_lines})
+                                                      'invoice_line':order_lines,
+                                                      'date_invoice':wizard_values_record.start_date})
                 invoice = inv_object.browse(cr,uid,inv_id,context= {})
 
                 #creating d/o for the same 
-                print "creating delivery order for outgoing products "
                 move_line =()
                 move_lines = []
                 for eq_id in wizard_values_record.eupment_rental_ids:
-                    print "products to be moved", eq_id.product_id.name
                     product_dictionary = {'date_expected': wizard_values_record.date,
                                   'product_uos_qty': 1,
                                   'product_id':eq_id.product_id.id,
@@ -127,18 +134,28 @@ class rental_order(models.Model):
                                                         })
                 subscription_obj = self.pool.get('subscription.subscription')
                 subscription_name = 'Invoicing- '+ renatal_order_name
-                doc_id = 'account.invoice,'+ str(inv_id)
+                doc_obj =  self.pool.get('subscription.document')
+                doc_id= doc_obj.create(cr,uid,{'name':'invoice',
+                                       'model':216
+                                       })
+                current_date = datetime.strptime(wizard_values_record.date,DEFAULT_SERVER_DATETIME_FORMAT)
+                newdate = (datetime.strptime(wizard_values_record.date, '%Y-%m-%d %H:%M:%S')+relativedelta.relativedelta(months=wizard_values_record.billing_freq)).strftime('%Y-%m-%d %H:%M:%S')
+                ir_corn_object =  self.pool.get('ir.cron')
                 sub_id = subscription_obj.create(cr,uid,{'name':subscription_name,
                                 'interval_number':wizard_values_record.billing_freq,
-                                'cron_id': False,
-                                 'notes': False,
-                                 'interval_type': 'months',
-                                  'doc_source': doc_id,
+                                'notes': False,
+                                'doc_source': 'account.invoice,'+ str(inv_id),
+                                'interval_type': 'months',
+                                'partner_id': partner_id,
                                 'date_init': wizard_values_record.date
-                                 })
+                                 },context={})
                 wizard_values_record.releated_subscription_id = sub_id
+                corn_id = ir_corn_object.create(cr,uid,{'name': subscription_name,
+                                                        'priority':5,
+                                                        'interval_number':wizard_values_record.billing_freq,
+                                                        'nextcall': newdate })
+                subscription_obj.write(cr,uid, sub_id,{'corn_id':corn_id})
 
-        
     def genrate_existing_products(self, cr, uid, ids, context ={}):
         rental_order_record = self.browse(cr, uid,ids)
         product_line = ()
@@ -165,11 +182,8 @@ class rental_order(models.Model):
                                                       },context)
          #now opening the newly created view 
         ir_model_data = self.pool.get('ir.model.data')
-        print "model",ir_model_data
         form_res = ir_model_data.get_object_reference(cr,uid,'rental_module','replace_rental_product_form_view')
-        print form_res#         
         form_id = form_res and form_res[1] or False
-        print form_id
         return  {
                        'name': 'Replace Rental Products',
                        'view_type': 'form',
@@ -187,7 +201,7 @@ class rental_order(models.Model):
     delivery_address = fields.Many2one(related = 'customer_id',string='Delivery Address',ondelete='cascade')
     start_date = fields.Date('Start Date')
     inital_term = fields.Selection([('6','6'),('12','12')],'Initial Terms')
-    billing_freq = fields.Selection([('1','1'),('3','3'),('6','6'),('12','12')], 'Billing Frequency')
+    billing_freq = fields.Selection([(1,1),(3,3),(6,6),(12,12)], 'Billing Frequency')
     purchase_price = fields.Float('Purchase price')
     date = fields.Datetime('Date')
     reference = fields.Char('Reference')
@@ -200,3 +214,4 @@ class rental_order(models.Model):
     eupment_rental_ids = fields.One2many('rental.lines','rental_order_id','Assets Rental Lines',ondelete='cascade')
     source_document_id = fields.Many2one('subscription.document','Source Document',ondelete='cascade')
     releated_subscription_id = fields.Many2one( 'subscription.subscription','Releated Subscription',ondelete='cascade')
+

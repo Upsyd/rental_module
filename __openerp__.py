@@ -9,7 +9,8 @@
     'website': 'http://www.browseinfo.in',
     'images': [],
     'depends': ['base', 'product',
-                'sale', 'account', 'stock','mrp'
+                'sale', 'account', 'stock','mrp',
+                'subscription'
                 ],
     'data': [
              'rental_product_view.xml',
@@ -18,6 +19,7 @@
              'rental_seq.xml',
              'stock_quants_inherited_view.xml',
              'replace_product_form.xml',
+             'mrp_repair_order_view.xml'
              ],
     'installable': True,
     'auto_install': False,

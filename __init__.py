@@ -5,3 +5,4 @@ import stock_quant
 import replace_product
 import replace_product_wizard
 import existing_products
+import mrp_repair

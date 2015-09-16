@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    <record id="mrp_repair_order_extended" model="ir.ui.view">
+            <field name="name">mrp.repair.order</field>
+            <field name="model">mrp.repair</field>
+            <field name="inherit_id" ref="mrp_repair.view_repair_order_form"/>
+            <field name="arch" type="xml">
+                <field name="product_id" position="attributes">
+                       <attribute name="domain">[('can_be_rented', '=', True)]</attribute>
+                </field>
+                <field name="product_id" position="before">
+                    <field name="seq_id"/>
+                </field>
+                <field name="location_id" position="before">
+                    <field name="rental_order_id"/>
+                </field>
+            </field>
+     </record>
+</data>
+</openerp>
