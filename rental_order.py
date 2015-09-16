@@ -17,7 +17,8 @@ class rental_order(models.Model):
         for record in rental_order_records:
             if record.eupment_rental_ids:
                 for rental_products_ids in record.eupment_rental_ids:
-                    list_sequance_id.append(rental_products_ids.seq_id.name)
+                    list_sequance_id.append(rental_products_ids.seq_id.id)
+        print list_sequance_id
         for rental_products in self.eupment_rental_ids:
                 list_product_id.append(rental_products.product_id) 
                 if rental_products.seq_id.id in list_sequance_id:
@@ -72,7 +73,7 @@ class rental_order(models.Model):
         subscription_object.set_done()
 
     def confirm_rental_order(self,cr, uid, ids, context={}):
-         if ids:
+        if ids:
             for id in ids:
                 wizard_values_record = self.browse(cr, uid,id)
                 renatal_order_name = wizard_values_record.name
@@ -132,29 +133,37 @@ class rental_order(models.Model):
                                                         'partner_id':wizard_values_record.customer_id.id,
                                                         'picking_type_id': 2,
                                                         })
-                subscription_obj = self.pool.get('subscription.subscription')
-                subscription_name = 'Invoicing- '+ renatal_order_name
-                doc_obj =  self.pool.get('subscription.document')
-                doc_id= doc_obj.create(cr,uid,{'name':'invoice',
+        subscription_obj = self.pool.get('subscription.subscription')
+        subscription_name = 'Invoicing- '+ renatal_order_name
+        doc_obj =  self.pool.get('subscription.document')
+        doc_id= doc_obj.create(cr,uid,{'name':'invoice',
                                        'model':216
                                        })
-                current_date = datetime.strptime(wizard_values_record.date,DEFAULT_SERVER_DATETIME_FORMAT)
-                newdate = (datetime.strptime(wizard_values_record.date, '%Y-%m-%d %H:%M:%S')+relativedelta.relativedelta(months=wizard_values_record.billing_freq)).strftime('%Y-%m-%d %H:%M:%S')
-                ir_corn_object =  self.pool.get('ir.cron')
-                sub_id = subscription_obj.create(cr,uid,{'name':subscription_name,
+        newdate = (datetime.strptime(wizard_values_record.date, '%Y-%m-%d %H:%M:%S')+relativedelta.relativedelta(months=wizard_values_record.billing_freq)).strftime('%Y-%m-%d %H:%M:%S')
+        print "new date", newdate 
+        print "type of new date",type(newdate)
+        newdate = datetime.strptime(newdate,DEFAULT_SERVER_DATETIME_FORMAT)
+        print "*****type of new date",type(newdate)
+        print "---------after adding months to date",newdate
+                
+        ir_corn_object =  self.pool.get('ir.cron')
+        print partner_id
+        sub_id = subscription_obj.create(cr,uid,{'name':subscription_name,
                                 'interval_number':wizard_values_record.billing_freq,
                                 'notes': False,
+                            
                                 'doc_source': 'account.invoice,'+ str(inv_id),
                                 'interval_type': 'months',
                                 'partner_id': partner_id,
-                                'date_init': wizard_values_record.date
+                                'date_init': wizard_values_record.date,
                                  },context={})
-                wizard_values_record.releated_subscription_id = sub_id
-                corn_id = ir_corn_object.create(cr,uid,{'name': subscription_name,
+        wizard_values_record.releated_subscription_id = sub_id
+        corn_id = ir_corn_object.create(cr,uid,{'name': subscription_name,
                                                         'priority':5,
                                                         'interval_number':wizard_values_record.billing_freq,
-                                                        'nextcall': newdate })
-                subscription_obj.write(cr,uid, sub_id,{'corn_id':corn_id})
+                                                        'nextcall': newdate})
+        subscription_obj.set_process(cr, uid, [sub_id], context={})
+        subscription_obj.write(cr,uid,[sub_id],{'cron_id':corn_id},context={})
 
     def genrate_existing_products(self, cr, uid, ids, context ={}):
         rental_order_record = self.browse(cr, uid,ids)
