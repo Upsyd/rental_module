@@ -10,7 +10,7 @@
     'images': [],
     'depends': ['base', 'product',
                 'sale', 'account', 'stock','mrp',
-                'subscription'
+                'subscription','mrp_repair'
                 ],
     'data': [
              'rental_product_view.xml',

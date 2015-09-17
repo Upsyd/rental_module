@@ -12,7 +12,7 @@
                         <label string="Can be rented"/>
                  </field>
                  <xpath expr="//page[@string='Accounting']" position="after">
-                      <page string ="Rental Information">
+                      <page string ="Rental Information" attrs="{'invisible':[('can_be_rented','=',False)]}">
                         <group col="4">
                             <field name="income_account"/>
                             <field name="replacement_value"/>

@@ -22,7 +22,7 @@ class mrp_repair(models.Model):
                                    }
         move_line = [(0,False,product_dictionary)]
         stock_picking_id = stock_picking_object.create(cr,uid,{'move_lines':move_line,
-                                                        'origin' : 'Rental Product Repair',
+                                                        'origin' :record.name ,
                                                         'partner_id':record.rental_order_id.customer_id.id,
                                                         'picking_type_id': 2,
                                                         })
@@ -46,7 +46,7 @@ class mrp_repair(models.Model):
                                    }
         move_line = [(0,False,product_dictionary)]
         stock_picking_id = stock_picking_object.create(cr,uid,{'move_lines':move_line,
-                                                        'origin' : 'Rental Product Repair',
+                                                        'origin' :record.name ,
                                                         'partner_id':record.rental_order_id.customer_id.id,
                                                         'picking_type_id': 1,
                                                         })

@@ -9,6 +9,11 @@ class rental_order(models.Model):
 
     _name = "rental.order"
 
+
+    @api.onchange('customer_id')
+    def get_customer_pricelist(self):
+        self.price_list = self.customer_id.property_product_pricelist.id
+        
     @api.onchange('eupment_rental_ids')
     def check_serial_number(self):
         rental_order_records = self.search([])
@@ -18,12 +23,13 @@ class rental_order(models.Model):
             if record.eupment_rental_ids:
                 for rental_products_ids in record.eupment_rental_ids:
                     list_sequance_id.append(rental_products_ids.seq_id.id)
-        print list_sequance_id
+                    list_product_id.append(rental_products_ids.product_id.id)
         for rental_products in self.eupment_rental_ids:
                 list_product_id.append(rental_products.product_id) 
                 if rental_products.seq_id.id in list_sequance_id:
                     raise Warning(_('Duplicate Serial Number Not Allowed'))
-        
+                if rental_products.product_id.id in list_product_id:
+                    raise Warning(_('Duplicate Product id Not Allowed'))
     @api.model
     def create(self,val):
         seq = self.env['ir.sequence'].get('rental.code')
@@ -64,7 +70,7 @@ class rental_order(models.Model):
             move_line= (0,False,product_dictionary)
             move_lines.append(move_line)
         stock_picking_id = stock_picking_object.create({'move_lines':move_lines,
-                                                        'origin': 'rental_order',
+                                                        'origin': self.name,
                                                         'partner_id':self.customer_id.id,
                                                         'picking_type_id': 1,
                                                         })
@@ -106,7 +112,8 @@ class rental_order(models.Model):
                                    }
                     order_line = (0,False,product_dict)
                     order_lines.append(order_line)
-                inv_id = inv_object.create(cr,uid,{'account_id':account_id,
+                inv_id = inv_object.create(cr,uid,{'origin': wizard_values_record.name,
+                                                   'account_id':account_id,
                                                       'partner_id':partner_id,
                                                       'invoice_line':order_lines,
                                                       'date_invoice':wizard_values_record.start_date})
@@ -133,25 +140,20 @@ class rental_order(models.Model):
                                                         'partner_id':wizard_values_record.customer_id.id,
                                                         'picking_type_id': 2,
                                                         })
+                wizard_values_record.delivery_order_id = stock_picking_id
         subscription_obj = self.pool.get('subscription.subscription')
         subscription_name = 'Invoicing- '+ renatal_order_name
         doc_obj =  self.pool.get('subscription.document')
         doc_id= doc_obj.create(cr,uid,{'name':'invoice',
                                        'model':216
                                        })
+        wizard_values_record.source_document_id = doc_id
         newdate = (datetime.strptime(wizard_values_record.date, '%Y-%m-%d %H:%M:%S')+relativedelta.relativedelta(months=wizard_values_record.billing_freq)).strftime('%Y-%m-%d %H:%M:%S')
-        print "new date", newdate 
-        print "type of new date",type(newdate)
         newdate = datetime.strptime(newdate,DEFAULT_SERVER_DATETIME_FORMAT)
-        print "*****type of new date",type(newdate)
-        print "---------after adding months to date",newdate
-                
         ir_corn_object =  self.pool.get('ir.cron')
-        print partner_id
         sub_id = subscription_obj.create(cr,uid,{'name':subscription_name,
                                 'interval_number':wizard_values_record.billing_freq,
                                 'notes': False,
-                            
                                 'doc_source': 'account.invoice,'+ str(inv_id),
                                 'interval_type': 'months',
                                 'partner_id': partner_id,
@@ -222,5 +224,5 @@ class rental_order(models.Model):
                               ('close','Close')], default = 'draft')
     eupment_rental_ids = fields.One2many('rental.lines','rental_order_id','Assets Rental Lines',ondelete='cascade')
     source_document_id = fields.Many2one('subscription.document','Source Document',ondelete='cascade')
-    releated_subscription_id = fields.Many2one( 'subscription.subscription','Releated Subscription',ondelete='cascade')
-
+    releated_subscription_id = fields.Many2one('subscription.subscription','Releated Subscription',ondelete='cascade')
+    delivery_order_id = fields.Many2one('stock.picking','D/O For Rental Order')

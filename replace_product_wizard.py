@@ -44,8 +44,10 @@ class replace_product_wizard(models.Model):
                                         }
                 move_line2= (0,False,product_dict_2)
                 move_lines2.append(move_line2)
+        rental_object =  self.env['rental.order']
+        name = rental_object.browse(activated_rental_order_id).name 
         stock_picking_id = stock_picking_object.create({'move_lines':move_lines,
-                                                        'origin': 'rental_order',
+                                                        'origin':name,
                                                         'partner_id':self.partner_id.id,
                                                         'picking_type_id': 1,
                                                         })
@@ -74,7 +76,7 @@ class replace_product_wizard(models.Model):
             move_line2 = (0,False,product_dict2)
             move_lines2.append(move_line2)
         stock_picking_id = stock_picking_object.create({'move_lines':move_lines,
-                                                        'origin': 'rental_order',
+                                                        'origin': name,
                                                         'partner_id':self.partner_id.id,
                                                         'picking_type_id': 2,
                                                         })
@@ -83,7 +85,7 @@ class replace_product_wizard(models.Model):
         rental_lines_obj = self.env['rental.lines']
         rental_lines = rental_lines_obj.search([('rental_order_id','=',activated_rental_order_id)])
         for rental_lines_obj in rental_lines:
-            print rental_lines_obj
+            rental_lines_obj.unlink()
         current_object.write({'eupment_rental_ids':move_lines2})
 
     def get_current_id(self,cr,uid,ids,context={}):

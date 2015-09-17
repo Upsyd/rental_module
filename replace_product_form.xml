@@ -18,9 +18,10 @@
                         </field>
                         <field name="rental_product_ids">
                             <tree editable="top">
-                                <field name="serial_number"/>
-                                <field name="product_id"/>
-                                <field name="price"/>
+                                <field name="serial_number" required="1" domain = "[('id','in',[])]"/>
+                                <field name="product_id" readonly="1" domain = "[('id','in',[])]"/>
+                                
+                                <field name="price" readonly="1"/>
                             </tree>
                         </field>
                        <field name="replace_date" required="1"/>
