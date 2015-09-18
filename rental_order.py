@@ -13,7 +13,7 @@ class rental_order(models.Model):
     @api.onchange('customer_id')
     def get_customer_pricelist(self):
         self.price_list = self.customer_id.property_product_pricelist.id
-        
+
     @api.onchange('eupment_rental_ids')
     def check_serial_number(self):
         rental_order_records = self.search([])
@@ -215,7 +215,7 @@ class rental_order(models.Model):
     billing_freq = fields.Selection([(1,1),(3,3),(6,6),(12,12)], 'Billing Frequency')
     purchase_price = fields.Float('Purchase price')
     date = fields.Datetime('Date')
-    reference = fields.Char('Reference')
+    reference = fields.Char('Reference/Description')
     agg_recived = fields.Boolean('Agreement received')
     warehouse = fields.Many2one('stock.warehouse','Warehouse',ondelete='cascade')
     price_list = fields.Many2one('product.pricelist','Product Price list',ondelete='cascade')

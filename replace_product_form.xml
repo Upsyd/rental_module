@@ -6,7 +6,6 @@
             <field name="name">replacing.rental.product</field>
             <field name="model">replace.product.wizard</field>
             <field name="arch" type="xml">
-            <sheet>
                 <form string="Replace rental product ">
                     <group>
                         <field name="existing_products_ids" >
@@ -32,7 +31,7 @@
                         <button string="Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
-              </sheet>
+            
             </field>
         </record>
 

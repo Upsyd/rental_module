@@ -8,7 +8,6 @@ class rental_lines(models.Model):
 
     def get_all_id(self,cr,uid,context={}):
         record = self.search(cr,uid,[],context)
-        print record
         return []
     def create(self,cr,uid,val,context={}):
         return super(rental_lines,self).create(cr,uid,val,context={})
